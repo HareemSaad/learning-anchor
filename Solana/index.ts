@@ -1,6 +1,5 @@
-import { load_public_key_from_existing_private_key } from "./modules/addresses";
-
+import { read_balance } from "./modules/reading_blockchain";
 
 (async function () {
-    load_public_key_from_existing_private_key();
+    read_balance();
 })();
