@@ -1,5 +1,5 @@
-import { requesting_airdrop } from "./modules/requesting_airdrop";
+import { pinging_a_program } from "./modules/pinging_a_program";
 
 (async function () {
-    requesting_airdrop();
+    pinging_a_program();
 })();

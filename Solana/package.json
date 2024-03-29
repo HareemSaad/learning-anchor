@@ -1,4 +1,8 @@
 {
+  "name": "solana",
+  "version": "1.0.0",
+  "description": "learning solana",
+  "main": "index.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "ts-node index.ts"
