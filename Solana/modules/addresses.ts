@@ -21,3 +21,19 @@ export function load_public_key_from_existing_private_key() {
     console.log(`The secret key is: `, keypair.secretKey);
     
 }
+
+export function load_public_key(Key: string) {
+
+    const keypair = getKeypairFromEnvironment(Key);
+
+    return keypair.publicKey.toBase58();
+    
+}
+
+export function load_key(Key: string) {
+
+    const keypair = getKeypairFromEnvironment(Key);
+
+    return keypair;
+    
+}

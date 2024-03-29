@@ -1,5 +1,5 @@
-import { read_balance } from "./modules/reading_blockchain";
+import { transfering_lamports } from "./modules/transfering_lamports";
 
 (async function () {
-    read_balance();
+    transfering_lamports();
 })();
