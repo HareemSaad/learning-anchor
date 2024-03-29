@@ -1,5 +1,5 @@
-import { transfering_lamports } from "./modules/transfering_lamports";
+import { requesting_airdrop } from "./modules/requesting_airdrop";
 
 (async function () {
-    transfering_lamports();
+    requesting_airdrop();
 })();
