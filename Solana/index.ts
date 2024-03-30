@@ -1,5 +1,5 @@
-import { calling_a_program } from "./modules/calling_a_program";
+import { reading_a_program } from "./modules/reading_a_program";
 
 (async function () {
-    calling_a_program();
+    reading_a_program();
 })();
