@@ -7,10 +7,12 @@ import {
   createInitializeAccountInstruction,
   createInitializeMintInstruction,
   createMint,
+  createMintToInstruction,
   getAccountLenForMint,
   getAssociatedTokenAddress,
   getMinimumBalanceForRentExemptMint,
   getMint,
+  mintTo,
 } from "@solana/spl-token";
 import {
   Connection,
@@ -38,7 +40,8 @@ const sender_key_pair = load_key(sender_string);
 export async function creating_a_token_mint(): Promise<PublicKey> {
   const decimal = 6;
 
-  const tokenMintPubKey = await createMint( // lies on the Ed25519 curve; is a program
+  const tokenMintPubKey = await createMint(
+    // lies on the Ed25519 curve; is a program
     connection,
     sender_key_pair, //payer
     sender, // the account which is authorized to do the actual minting of tokens from the token mint.
@@ -70,15 +73,37 @@ export async function creating_a_token_account() {
 // If not for associated token account, a user may own many token accounts belonging to the same mint leading to confusion as to where to send tokens to.
 // Associated token account allows a user to send tokens to another user if the recipient doesn't yet have the token account for that token mint.
 export async function creating_an_associate_token_account() {
-
   const associatedTokenAccount = await createAssociatedTokenAccount(
     connection,
     sender_key_pair, //payer
     await creating_a_token_mint(), // the token mint that the new token account is associated with
-    sender, // the account of the owner of the new token account
+    sender // the account of the owner of the new token account
   );
 
-  console.log("\nAssociated token account: ", associatedTokenAccount.toString());
+  console.log(
+    "\nAssociated token account: ",
+    associatedTokenAccount.toString()
+  );
+}
+
+export async function minting_tokens() {
+  const associatedTokenAccount = new PublicKey(
+    "Ed4a7GY6tmdjCHSpwR4DMNRHATFd7jaFQ6MawhYmoU1f"
+  );
+  const mintAccount = new PublicKey(
+    "Gt6UnAzGF1xegzCjzuNL3NRCiyVrDzJgHUQfvV1gbwYD"
+  );
+
+  const transactionSignature = await mintTo(
+    connection,
+    sender_key_pair, //payer
+    mintAccount, // token mint
+    associatedTokenAccount, // token account
+    sender, // the account authorized to mint tokens
+    100000000000
+  );
+
+  console.log(`\n Transaction Signature: ${transactionSignature}`)
 }
 
 (async function () {})();
@@ -150,19 +175,37 @@ async function buildCreateTokenAccountTransaction(
 // Using getAssociatedTokenAddress to derive the associated token account address from the mint and owner
 // Building a transaction using instructions from createAssociatedTokenAccountInstruction
 async function buildCreateAssociatedTokenAccountTransaction(
-    payer: PublicKey,
-    mint: PublicKey
-  ): Promise<Transaction> {
-    const associatedTokenAddress = await getAssociatedTokenAddress(mint, payer, false);
-  
-    const transaction = new Transaction().add(
-      createAssociatedTokenAccountInstruction(
-        payer,
-        associatedTokenAddress,
-        payer,
-        mint
-      )
+  payer: PublicKey,
+  mint: PublicKey
+): Promise<Transaction> {
+  const associatedTokenAddress = await getAssociatedTokenAddress(
+    mint,
+    payer,
+    false
+  );
+
+  const transaction = new Transaction().add(
+    createAssociatedTokenAccountInstruction(
+      payer,
+      associatedTokenAddress,
+      payer,
+      mint
     )
-  
-    return transaction
-  }
+  );
+
+  return transaction;
+}
+
+// Under the hood, the mintTo function simply creates a transaction with the instructions obtained from the createMintToInstruction function.
+async function buildMintToTransaction(
+  authority: PublicKey,
+  mint: PublicKey,
+  amount: number,
+  destination: PublicKey
+): Promise<Transaction> {
+  const transaction = new Transaction().add(
+    createMintToInstruction(mint, destination, authority, amount)
+  );
+
+  return transaction;
+}
