@@ -1,5 +1,5 @@
-import { reading_a_program } from "./modules/reading_a_program";
+import { creating_a_token_mint } from "./modules/fungible_token";
 
 (async function () {
-    reading_a_program();
+    creating_a_token_mint();
 })();
