@@ -1,8 +1,10 @@
 import {
   MINT_SIZE,
   TOKEN_PROGRAM_ID,
+  approve,
   burn,
   createAccount,
+  createApproveInstruction,
   createAssociatedTokenAccount,
   createAssociatedTokenAccountInstruction,
   createBurnInstruction,
@@ -167,6 +169,30 @@ export async function burn_tokens() {
   console.log(`\n Transaction Signature: ${transactionSignature}`);
 }
 
+export async function approve_tokens() {
+  const associatedTokenAccount = new PublicKey(
+    "Ed4a7GY6tmdjCHSpwR4DMNRHATFd7jaFQ6MawhYmoU1f"
+  );
+  const mintAccount = new PublicKey(
+    "Gt6UnAzGF1xegzCjzuNL3NRCiyVrDzJgHUQfvV1gbwYD"
+  );
+
+  const sender1AssociatedTokenAccount = new PublicKey(
+    "4xR7NuiBrfFAPawQiBSXWqNEmWiN7mHYqvSPQu7NCWrN"
+  );
+
+  const transactionSignature = await approve(
+    connection,
+    sender_key_pair, //payer
+    associatedTokenAccount, // address of the token amount
+    user, // Account authorized to transfer tokens from the account
+    sender, // the account of the owner of the token account
+    10000000
+  );
+
+  console.log(`\n Transaction Signature: ${transactionSignature}`);
+}
+
 // allows users to create their own tokens, when seceret key is not known
 // these transactions happen under the hood of `createMint`
 async function buildCreateMintTransaction(
@@ -290,6 +316,19 @@ async function buildBurnTransaction(
 ): Promise<Transaction> {
   const transaction = new Transaction().add(
     createBurnInstruction(account, mint, owner, amount)
+  );
+
+  return transaction;
+}
+
+async function buildApproveTransaction(
+  account: PublicKey,
+  delegate: PublicKey,
+  owner: PublicKey,
+  amount: number
+): Promise<Transaction> {
+  const transaction = new Transaction().add(
+    createApproveInstruction(account, delegate, owner, amount)
   );
 
   return transaction;
