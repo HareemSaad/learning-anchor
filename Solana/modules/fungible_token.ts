@@ -1,9 +1,11 @@
 import {
   MINT_SIZE,
   TOKEN_PROGRAM_ID,
+  burn,
   createAccount,
   createAssociatedTokenAccount,
   createAssociatedTokenAccountInstruction,
+  createBurnInstruction,
   createInitializeAccountInstruction,
   createInitializeMintInstruction,
   createMint,
@@ -78,7 +80,11 @@ export async function creating_a_token_account() {
 // An Associated Token Account is a Token Account where the address of the Token Account is derived using an owner's public key and a token mint.
 // If not for associated token account, a user may own many token accounts belonging to the same mint leading to confusion as to where to send tokens to.
 // Associated token account allows a user to send tokens to another user if the recipient doesn't yet have the token account for that token mint.
-export async function creating_an_associate_token_account(payer: Keypair, owner: PublicKey, mint: PublicKey): Promise<PublicKey> {
+export async function creating_an_associate_token_account(
+  payer: Keypair,
+  owner: PublicKey,
+  mint: PublicKey
+): Promise<PublicKey> {
   const associatedTokenAccount = await createAssociatedTokenAccount(
     connection,
     payer, //payer
@@ -111,7 +117,7 @@ export async function minting_tokens() {
     100000000000
   );
 
-  console.log(`\n Transaction Signature: ${transactionSignature}`)
+  console.log(`\n Transaction Signature: ${transactionSignature}`);
 }
 
 export async function transfer_tokens() {
@@ -122,7 +128,8 @@ export async function transfer_tokens() {
     "Gt6UnAzGF1xegzCjzuNL3NRCiyVrDzJgHUQfvV1gbwYD"
   );
 
-  const sender1AssociatedTokenAccount = await creating_an_associate_token_account(user_key_pair, user, mintAccount) // 4xR7NuiBrfFAPawQiBSXWqNEmWiN7mHYqvSPQu7NCWrN
+  const sender1AssociatedTokenAccount =
+    await creating_an_associate_token_account(user_key_pair, user, mintAccount); // 4xR7NuiBrfFAPawQiBSXWqNEmWiN7mHYqvSPQu7NCWrN
 
   const transactionSignature = await transfer(
     connection,
@@ -131,9 +138,33 @@ export async function transfer_tokens() {
     sender1AssociatedTokenAccount, // the token account receiving tokens
     sender, // the account of the owner of the source token account
     1000000
-  )
+  );
 
-  console.log(`\n Transaction Signature: ${transactionSignature}`)
+  console.log(`\n Transaction Signature: ${transactionSignature}`);
+}
+
+export async function burn_tokens() {
+  const associatedTokenAccount = new PublicKey(
+    "Ed4a7GY6tmdjCHSpwR4DMNRHATFd7jaFQ6MawhYmoU1f"
+  );
+  const mintAccount = new PublicKey(
+    "Gt6UnAzGF1xegzCjzuNL3NRCiyVrDzJgHUQfvV1gbwYD"
+  );
+
+  const sender1AssociatedTokenAccount = new PublicKey(
+    "4xR7NuiBrfFAPawQiBSXWqNEmWiN7mHYqvSPQu7NCWrN"
+  );
+
+  const transactionSignature = await burn(
+    connection,
+    sender_key_pair, //payer
+    associatedTokenAccount, // the token account to burn tokens from
+    mintAccount, //  the token mint associated with the token account
+    sender, // the account of the owner of the token account
+    1000000
+  );
+
+  console.log(`\n Transaction Signature: ${transactionSignature}`);
 }
 
 // allows users to create their own tokens, when seceret key is not known
@@ -239,19 +270,27 @@ async function buildMintToTransaction(
 }
 
 async function buildTransferTransaction(
-    source: PublicKey,
-    destination: PublicKey,
-    owner: PublicKey,
-    amount: number
-  ): Promise<Transaction> {
-    const transaction = new Transaction().add(
-      createTransferInstruction(
-        source,
-        destination,
-        owner,
-        amount,
-      )
-    )
-  
-    return transaction
-  }
+  source: PublicKey,
+  destination: PublicKey,
+  owner: PublicKey,
+  amount: number
+): Promise<Transaction> {
+  const transaction = new Transaction().add(
+    createTransferInstruction(source, destination, owner, amount)
+  );
+
+  return transaction;
+}
+
+async function buildBurnTransaction(
+  account: PublicKey,
+  mint: PublicKey,
+  owner: PublicKey,
+  amount: number
+): Promise<Transaction> {
+  const transaction = new Transaction().add(
+    createBurnInstruction(account, mint, owner, amount)
+  );
+
+  return transaction;
+}
