@@ -18,6 +18,7 @@ import {
   getMinimumBalanceForRentExemptMint,
   getMint,
   mintTo,
+  revoke,
   transfer,
 } from "@solana/spl-token";
 import {
@@ -188,6 +189,28 @@ export async function approve_tokens() {
     user, // Account authorized to transfer tokens from the account
     sender, // the account of the owner of the token account
     10000000
+  );
+
+  console.log(`\n Transaction Signature: ${transactionSignature}`);
+}
+
+export async function revoke_approval() {
+  const associatedTokenAccount = new PublicKey(
+    "Ed4a7GY6tmdjCHSpwR4DMNRHATFd7jaFQ6MawhYmoU1f"
+  );
+  const mintAccount = new PublicKey(
+    "Gt6UnAzGF1xegzCjzuNL3NRCiyVrDzJgHUQfvV1gbwYD"
+  );
+
+  const sender1AssociatedTokenAccount = new PublicKey(
+    "4xR7NuiBrfFAPawQiBSXWqNEmWiN7mHYqvSPQu7NCWrN"
+  );
+
+  const transactionSignature = await revoke(
+    connection,
+    sender_key_pair, //payer
+    associatedTokenAccount, // the token account to revoke the delegate authority from
+    sender, // the account of the owner of the token account
   );
 
   console.log(`\n Transaction Signature: ${transactionSignature}`);
