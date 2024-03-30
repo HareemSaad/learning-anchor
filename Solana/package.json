@@ -8,12 +8,14 @@
     "start": "ts-node index.ts"
   },
   "devDependencies": {
+    "@types/bn.js": "^5.1.5",
     "typescript": "^5.4.3"
   },
   "dependencies": {
     "@coral-xyz/borsh": "^0.29.0",
     "@solana-developers/helpers": "^2.2.0",
     "@solana/web3.js": "^1.91.2",
+    "bn.js": "^5.2.1",
     "dotenv": "^16.4.5"
   }
 }
