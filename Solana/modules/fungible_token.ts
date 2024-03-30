@@ -1,9 +1,13 @@
 import {
   MINT_SIZE,
   TOKEN_PROGRAM_ID,
+  createAccount,
+  createInitializeAccountInstruction,
   createInitializeMintInstruction,
   createMint,
+  getAccountLenForMint,
   getMinimumBalanceForRentExemptMint,
+  getMint,
 } from "@solana/spl-token";
 import {
   Connection,
@@ -42,6 +46,21 @@ export async function creating_a_token_mint() {
   console.log("Mint account: ", tokenMintPubKey.toString());
 }
 
+// Token Account to hold the newly issued tokens.
+export async function creating_a_token_account() {
+  const key_pair = await Keypair.generate();
+
+  const account = await createAccount(
+    connection,
+    sender_key_pair, //payer
+    sender, // the token mint that the new token account is associated with
+    sender, // the account of the owner of the new token account
+    key_pair
+  );
+
+  console.log("\nToken account: ", account.toString());
+}
+
 (async function () {})();
 
 // allows users to create their own tokens, when seceret key is not known
@@ -69,6 +88,36 @@ async function buildCreateMintTransaction(
       accountKeypair.publicKey,
       decimals,
       payer,
+      payer,
+      programId
+    )
+  );
+
+  return transaction;
+}
+
+async function buildCreateTokenAccountTransaction(
+  connection: Connection,
+  payer: PublicKey,
+  mint: PublicKey
+): Promise<Transaction> {
+  const mintState = await getMint(connection, mint);
+  const accountKeypair = await Keypair.generate();
+  const space = getAccountLenForMint(mintState);
+  const lamports = await connection.getMinimumBalanceForRentExemption(space);
+  const programId = TOKEN_PROGRAM_ID;
+
+  const transaction = new Transaction().add(
+    SystemProgram.createAccount({
+      fromPubkey: payer,
+      newAccountPubkey: accountKeypair.publicKey,
+      space,
+      lamports,
+      programId,
+    }),
+    createInitializeAccountInstruction(
+      accountKeypair.publicKey,
+      mint,
       payer,
       programId
     )
