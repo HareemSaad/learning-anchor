@@ -43,6 +43,10 @@ const user_string = "SECRET_KEY_1";
 const user = new PublicKey(load_public_key(user_string));
 const user_key_pair = load_key(user_string);
 
+const user_2_string = "MAIN";
+const user_2 = new PublicKey(load_public_key(user_2_string));
+const user_2_key_pair = load_key(user_2_string);
+
 // const freezer_string = "SECRET_KEY_1";
 // const freezer = new PublicKey(load_public_key(freezer_string));
 // const freezer_key_pair = load_key(sender_string);
@@ -186,7 +190,7 @@ export async function approve_tokens() {
     connection,
     sender_key_pair, //payer
     associatedTokenAccount, // address of the token amount
-    user, // Account authorized to transfer tokens from the account
+    sender1AssociatedTokenAccount, // Account authorized to transfer tokens from the account
     sender, // the account of the owner of the token account
     10000000
   );
@@ -211,6 +215,34 @@ export async function revoke_approval() {
     sender_key_pair, //payer
     associatedTokenAccount, // the token account to revoke the delegate authority from
     sender, // the account of the owner of the token account
+  );
+
+  console.log(`\n Transaction Signature: ${transactionSignature}`);
+}
+
+export async function transfer_from_tokens() {
+  const associatedTokenAccount = new PublicKey(
+    "Ed4a7GY6tmdjCHSpwR4DMNRHATFd7jaFQ6MawhYmoU1f"
+  );
+  const mintAccount = new PublicKey(
+    "Gt6UnAzGF1xegzCjzuNL3NRCiyVrDzJgHUQfvV1gbwYD"
+  );
+
+  const user1AssociatedTokenAccount = new PublicKey(
+    "4xR7NuiBrfFAPawQiBSXWqNEmWiN7mHYqvSPQu7NCWrN"
+  );
+
+  const user2AssociatedTokenAccount = new PublicKey("3vQqgpZGJ9vLEnZLZDpvEK2vAxm7KDrYo7me9kqu7rFS")
+
+  // sender approves user to 1 token
+  // user transfer to user 2
+  const transactionSignature = await transfer(
+    connection,
+    user_key_pair, // payer: in this context must be same as from address owner
+    user1AssociatedTokenAccount, // from address: the token account sending tokens
+    user2AssociatedTokenAccount, // to address: the token account receiving tokens
+    user, // from address owner: the account of the owner of the source token account
+    1000000
   );
 
   console.log(`\n Transaction Signature: ${transactionSignature}`);

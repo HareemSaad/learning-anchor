@@ -1,5 +1,5 @@
-import { revoke_approval } from "./modules/fungible_token";
+import { transfer_from_tokens } from "./modules/fungible_token";
 
 (async function () {
-    revoke_approval();
+    transfer_from_tokens();
 })();
