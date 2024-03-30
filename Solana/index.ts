@@ -1,5 +1,5 @@
-import { minting_tokens } from "./modules/fungible_token";
+import { transfer_tokens } from "./modules/fungible_token";
 
 (async function () {
-    minting_tokens();
+    transfer_tokens();
 })();

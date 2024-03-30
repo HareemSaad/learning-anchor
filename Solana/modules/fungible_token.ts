@@ -8,11 +8,13 @@ import {
   createInitializeMintInstruction,
   createMint,
   createMintToInstruction,
+  createTransferInstruction,
   getAccountLenForMint,
   getAssociatedTokenAddress,
   getMinimumBalanceForRentExemptMint,
   getMint,
   mintTo,
+  transfer,
 } from "@solana/spl-token";
 import {
   Connection,
@@ -31,6 +33,10 @@ const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
 const sender_string = "SECRET_KEY";
 const sender = new PublicKey(load_public_key(sender_string));
 const sender_key_pair = load_key(sender_string);
+
+const user_string = "SECRET_KEY_1";
+const user = new PublicKey(load_public_key(user_string));
+const user_key_pair = load_key(user_string);
 
 // const freezer_string = "SECRET_KEY_1";
 // const freezer = new PublicKey(load_public_key(freezer_string));
@@ -72,18 +78,20 @@ export async function creating_a_token_account() {
 // An Associated Token Account is a Token Account where the address of the Token Account is derived using an owner's public key and a token mint.
 // If not for associated token account, a user may own many token accounts belonging to the same mint leading to confusion as to where to send tokens to.
 // Associated token account allows a user to send tokens to another user if the recipient doesn't yet have the token account for that token mint.
-export async function creating_an_associate_token_account() {
+export async function creating_an_associate_token_account(payer: Keypair, owner: PublicKey, mint: PublicKey): Promise<PublicKey> {
   const associatedTokenAccount = await createAssociatedTokenAccount(
     connection,
-    sender_key_pair, //payer
-    await creating_a_token_mint(), // the token mint that the new token account is associated with
-    sender // the account of the owner of the new token account
+    payer, //payer
+    mint, // the token mint that the new token account is associated with
+    owner // the account of the owner of the new token account
   );
 
   console.log(
     "\nAssociated token account: ",
     associatedTokenAccount.toString()
   );
+
+  return associatedTokenAccount;
 }
 
 export async function minting_tokens() {
@@ -106,7 +114,27 @@ export async function minting_tokens() {
   console.log(`\n Transaction Signature: ${transactionSignature}`)
 }
 
-(async function () {})();
+export async function transfer_tokens() {
+  const associatedTokenAccount = new PublicKey(
+    "Ed4a7GY6tmdjCHSpwR4DMNRHATFd7jaFQ6MawhYmoU1f"
+  );
+  const mintAccount = new PublicKey(
+    "Gt6UnAzGF1xegzCjzuNL3NRCiyVrDzJgHUQfvV1gbwYD"
+  );
+
+  const sender1AssociatedTokenAccount = await creating_an_associate_token_account(user_key_pair, user, mintAccount) // 4xR7NuiBrfFAPawQiBSXWqNEmWiN7mHYqvSPQu7NCWrN
+
+  const transactionSignature = await transfer(
+    connection,
+    sender_key_pair, //payer
+    associatedTokenAccount, // the token account sending tokens
+    sender1AssociatedTokenAccount, // the token account receiving tokens
+    sender, // the account of the owner of the source token account
+    1000000
+  )
+
+  console.log(`\n Transaction Signature: ${transactionSignature}`)
+}
 
 // allows users to create their own tokens, when seceret key is not known
 // these transactions happen under the hood of `createMint`
@@ -209,3 +237,21 @@ async function buildMintToTransaction(
 
   return transaction;
 }
+
+async function buildTransferTransaction(
+    source: PublicKey,
+    destination: PublicKey,
+    owner: PublicKey,
+    amount: number
+  ): Promise<Transaction> {
+    const transaction = new Transaction().add(
+      createTransferInstruction(
+        source,
+        destination,
+        owner,
+        amount,
+      )
+    )
+  
+    return transaction
+  }
