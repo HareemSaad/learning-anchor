@@ -1,7 +1,7 @@
-import { hello_world } from "./scripts/hello_world";
+import { note_ops } from "./scripts/note_app";
 
 (async function () {
-  hello_world()
+    note_ops()
     .then(() => {
       console.log("Finished successfully");
     })
