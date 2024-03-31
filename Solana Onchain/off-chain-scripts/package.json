@@ -1,0 +1,16 @@
+{
+  "main": "index.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "ts-node index.ts"
+  },
+  "devDependencies": {
+    "@types/bn.js": "^5.1.5",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.3"
+  },
+  "dependencies": {
+    "@solana/web3.js": "^1.91.2",
+    "dotenv": "^16.4.5"
+  }
+}
