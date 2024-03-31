@@ -109,41 +109,41 @@ export async function update_note(
 
 // Transaction: Transaction: https://explorer.solana.com/tx/2S3j1iV7pnJus5UKVtC9bhok1KTpRKADJu5mspExWv9uMwvGPg1UDA5kgrsioLyu4GqzD7dM9kCyAR3jMV89W8fB?cluster=devnet
 export async function delete_note(
-    payer: web3.Keypair
-  ): Promise<web3.TransactionSignature> {
-    // struct in order of payload struct
-    const schema = borsh.struct([
-      borsh.u8("variant"),
-      borsh.u64("id"),
-      borsh.str("title"),
-      borsh.str("body"),
-    ]);
-  
-    // encode data
-    const buffer = Buffer.alloc(1000); // allocate a new buffer
-  
-    schema.encode(
-      { variant: 2, id: new BN(1), title: "list", body: "eggs" },
-      buffer
-    ); // encode the data into that buffer
-  
-    const instructionBuffer = buffer.slice(0, schema.getSpan(buffer)); // slice the original buffer down into a new buffer that’s only as large as needed.
-  
-    const transaction = new web3.Transaction();
-    const instruction = new web3.TransactionInstruction({
-      keys: [], //nothing since reading program
-      data: instructionBuffer,
-      programId: programId,
-    });
-  
-    transaction.add(instruction);
-  
-    const transactionSignature: string = await web3.sendAndConfirmTransaction(
-      connection,
-      transaction,
-      [payer]
-    );
-  
-    return transactionSignature;
-  }
+  payer: web3.Keypair
+): Promise<web3.TransactionSignature> {
+  // struct in order of payload struct
+  const schema = borsh.struct([
+    borsh.u8("variant"),
+    borsh.u64("id"),
+    borsh.str("title"),
+    borsh.str("body"),
+  ]);
+
+  // encode data
+  const buffer = Buffer.alloc(1000); // allocate a new buffer
+
+  schema.encode(
+    { variant: 2, id: new BN(1), title: "list", body: "eggs" },
+    buffer
+  ); // encode the data into that buffer
+
+  const instructionBuffer = buffer.slice(0, schema.getSpan(buffer)); // slice the original buffer down into a new buffer that’s only as large as needed.
+
+  const transaction = new web3.Transaction();
+  const instruction = new web3.TransactionInstruction({
+    keys: [], //nothing since reading program
+    data: instructionBuffer,
+    programId: programId,
+  });
+
+  transaction.add(instruction);
+
+  const transactionSignature: string = await web3.sendAndConfirmTransaction(
+    connection,
+    transaction,
+    [payer]
+  );
+
+  return transactionSignature;
+}
   
