@@ -3,6 +3,7 @@ import web3 = require("@solana/web3.js");
 import * as borsh from "@coral-xyz/borsh";
 import Dotenv from "dotenv";
 import BN from "bn.js";
+import { SystemProgram } from "@solana/web3.js";
 Dotenv.config();
 
 let programId = new web3.PublicKey(
@@ -14,7 +15,7 @@ let connection = new web3.Connection(web3.clusterApiUrl("devnet"));
 export async function note_ops() {
   let payer = await initializeKeypair(connection);
 
-  const variant: number = 3;
+  const variant: number = 1;
 
   const transactionSignature =
     variant == 1 ? await create_note(payer): 
@@ -31,6 +32,22 @@ export async function note_ops() {
 export async function create_note(
   payer: web3.Keypair
 ): Promise<web3.TransactionSignature> {
+
+  const note = {
+    id: new BN(1),
+    title: "grocery", // change this (or the payer address) so it works
+    body: "eggs"
+  }
+
+  // get pda account
+  // right now title should be unique for each user as it creates pda
+  const [pda, bump] = web3.PublicKey.findProgramAddressSync(
+    [payer.publicKey.toBuffer(), Buffer.from(note.title)],
+    programId
+  );
+
+  console.log(pda.toString());
+
   // struct in order of payload struct
   const schema = borsh.struct([
     borsh.u8("variant"),
@@ -43,7 +60,7 @@ export async function create_note(
   const buffer = Buffer.alloc(1000); // allocate a new buffer
 
   schema.encode(
-    { variant: 0, id: new BN(1), title: "list", body: "eggs" },
+    { variant: 0, id: note.id, title: note.title, body: note.body },
     buffer
   ); // encode the data into that buffer
 
@@ -51,7 +68,23 @@ export async function create_note(
 
   const transaction = new web3.Transaction();
   const instruction = new web3.TransactionInstruction({
-    keys: [], //nothing since reading program
+    keys: [
+      {
+        pubkey: payer.publicKey,
+        isSigner: true,
+        isWritable: false,
+      },
+      {
+        pubkey: pda,
+        isSigner: false,
+        isWritable: true,
+      },
+      {
+        pubkey: SystemProgram.programId,
+        isSigner: false,
+        isWritable: false,
+      },
+    ], //nothing since reading program
     data: instructionBuffer,
     programId: programId,
   });
