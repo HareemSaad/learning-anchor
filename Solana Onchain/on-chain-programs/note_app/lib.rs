@@ -31,7 +31,7 @@ fn process_instruction(
     // variables title body and id take ownership of the values retuned by unpack
     match instruction {
         NoteInstruction::CreateNote { title, body, id } => {
-            msg!("Create Note {}: {} {}", id, title, body);
+            create_note(program_id, accounts, title, body, id);
         },
         NoteInstruction::UpdateNote { title, body, id } => {
             msg!("Update Note {}: {} {}", id, title, body);
