@@ -16,8 +16,14 @@ pub mod voting {
     use super::*;
     
     #[access_control(check(&ctx))]
-    pub fn init_candidate(ctx: Context<InitializeCandidate>) -> Result<()> {
+    pub fn init_candidate(ctx: Context<InitializeCandidate>, _candidate_name: String) -> Result<()> {
         msg!("Init Candidate! {:?}", ctx.accounts.payer.key());
+        msg!("Candidate ! {:?}", ctx.accounts.candidate.key());
         Ok(())
+    }
+
+    pub fn vote_for_candidate(ctx: Context<VoteCandidate>, _candidate_name: String) -> Result<()> {
+        ctx.accounts.candidate.votes_received += 1;
+        Ok(())    
     }
 }
