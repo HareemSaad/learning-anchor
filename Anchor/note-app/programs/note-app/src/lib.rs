@@ -7,6 +7,7 @@ pub mod note_app {
     use super::*;
 
     pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
+        msg!("Initializing Note App program");
         Ok(())
     }
 }
