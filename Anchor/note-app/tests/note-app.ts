@@ -170,6 +170,68 @@ describe("note-app", () => {
     assert.ok(account2.note === "Hello World2!");
   });
 
+  it("Creates multiple notes for one user", async () => {
+    const user = await createUser();
+
+    await program.methods
+    .initialize()
+    .accounts({
+      payer: user.publicKey
+    })
+    .signers([user])
+    .rpc();
+
+    const [counterAccount] = PublicKey.findProgramAddressSync(
+      [user.publicKey.toBuffer()],
+      program.programId
+    );
+
+    let counter = await program.account.count.fetch(counterAccount);
+
+    assert.ok(counter.count.toNumber() === 1);
+
+    await program.methods
+    .create("Hello World!")
+    .accounts({
+      counter: counterAccount,
+      payer: user.publicKey
+    })
+    .signers([user])
+    .rpc();
+
+    const [noteAccount] = PublicKey.findProgramAddressSync(
+      [Buffer.from("note"), user.publicKey.toBuffer(), new anchor.BN(counter.count).toArrayLike(Buffer, "le", 8)],
+      program.programId
+    );
+
+    const account = await program.account.note.fetch(noteAccount);
+    counter = await program.account.count.fetch(counterAccount);
+
+    assert.ok(account.note === "Hello World!");
+    assert.ok(counter.count.toNumber() === 2);
+
+    await program.methods
+    .create("Hello World2!")
+    .accounts({
+      counter: counterAccount,
+      payer: user.publicKey
+    })
+    .signers([user])
+    .rpc();
+
+    const [noteAccount2] = PublicKey.findProgramAddressSync(
+      [Buffer.from("note"), user.publicKey.toBuffer(), new anchor.BN(counter.count).toArrayLike(Buffer, "le", 8)],
+      program.programId
+    );
+
+    const account2 = await program.account.note.fetch(noteAccount2);
+    counter = await program.account.count.fetch(counterAccount);
+
+    assert.ok(account2.note === "Hello World2!");
+    assert.ok(account.note === "Hello World!");
+    assert.ok(counter.count.toNumber() === 3);
+  });
+
   // create a function that will create a new user and give it lamports
   async function createUser(): Promise<anchor.web3.Keypair> {
     const  user = anchor.web3.Keypair.generate()
