@@ -83,13 +83,15 @@ describe("note-app", () => {
 
   it("Updates a note", async () => {
 
+    const count = new anchor.BN(1);
+
     const [noteAccount] = PublicKey.findProgramAddressSync(
-      [Buffer.from("note"), provider.wallet.publicKey.toBuffer(), new anchor.BN(1).toArrayLike(Buffer, "le", 8)],
+      [Buffer.from("note"), provider.wallet.publicKey.toBuffer(), count.toArrayLike(Buffer, "le", 8)],
       program.programId
     );
 
     await program.methods
-    .update("Hello World! Updated")
+    .update("Hello World! Updated", count)
     .accounts({
       note: noteAccount,
       payer: wallet.publicKey
@@ -99,6 +101,27 @@ describe("note-app", () => {
     const account = await program.account.note.fetch(noteAccount);
 
     assert.ok(account.note === "Hello World! Updated");
+  });
+
+  it("Fails if calculated address is incorrect", async () => {
+    const count = new anchor.BN(1);
+
+    const [noteAccount] = PublicKey.findProgramAddressSync(
+      [Buffer.from("note"), provider.wallet.publicKey.toBuffer(), count.toArrayLike(Buffer, "le", 8)],
+      program.programId
+    );
+
+    try {
+      await program.methods
+      .update("Hello World! Updated", count.add(count))
+      .accounts({
+        note: noteAccount,
+        payer: wallet.publicKey
+      })
+      .rpc();
+    } catch (error) {
+      expect(error.message).to.include("Invalid note account");
+    }
   });
 
   it("Creates a note for multiple users", async () => {

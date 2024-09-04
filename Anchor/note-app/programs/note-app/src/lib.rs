@@ -29,12 +29,28 @@ pub mod note_app {
         Ok(())
     }
 
-    pub fn update(ctx: Context<Update>, data: String) -> Result<()> {
+    pub fn update(ctx: Context<Update>, data: String, count: u64) -> Result<()> {
         //  check if data is less than 100 bytes
         if data.len() > 100 {
             return Err(ErrorCode::DataTooLong.into());
         }
+
         msg!("Updating Note App program");
+
+        // Validate that the passed `note` account matches the expected PDA
+        let (note, _bump) = Pubkey::find_program_address(
+            &[
+                b"note".as_ref(),
+                ctx.accounts.payer.key().as_ref(),
+                &count.to_le_bytes(),
+            ],
+            ctx.program_id,
+        );
+
+        if note != *ctx.accounts.note.to_account_info().key {
+            return Err(ErrorCode::InvalidNoteAccount.into());
+        }
+
         let note = &mut ctx.accounts.note;
         note.note = data;
         Ok(())
@@ -80,4 +96,6 @@ pub struct Note {
 pub enum ErrorCode {
     #[msg("Data too long")]
     DataTooLong,
+    #[msg("Invalid note account")]
+    InvalidNoteAccount,
 }
