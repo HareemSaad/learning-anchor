@@ -253,8 +253,7 @@ describe("note-app", () => {
     assert.ok(counter.count.toNumber() === 3);
   });
 
-  it("Cannot Use somebody else's counter storage", async () => {
-
+  it("Deletes a note", async () => {
     const user = await createUser();
 
     await program.methods
@@ -265,18 +264,15 @@ describe("note-app", () => {
     .signers([user])
     .rpc();
 
-    // find the user's counter account
     const [counterAccount] = PublicKey.findProgramAddressSync(
       [user.publicKey.toBuffer()],
       program.programId
     );
 
-    // fetch the counter account - it gets the storage struct at the pda
     let counter = await program.account.count.fetch(counterAccount);
 
     assert.ok(counter.count.toNumber() === 1);
 
-    // create a new note, send the counter account
     await program.methods
     .create("Hello World!")
     .accounts({
@@ -285,18 +281,31 @@ describe("note-app", () => {
     .signers([user])
     .rpc();
 
-    // find the note account
     const [noteAccount] = PublicKey.findProgramAddressSync(
       [Buffer.from("note"), user.publicKey.toBuffer(), new anchor.BN(counter.count).toArrayLike(Buffer, "le", 8)],
       program.programId
     );
 
-    // need to refetch the counter account since it has been updated
     const account = await program.account.note.fetch(noteAccount);
     counter = await program.account.count.fetch(counterAccount);
 
     assert.ok(account.note === "Hello World!");
     assert.ok(counter.count.toNumber() === 2);
+
+    await program.methods
+    .delete(new anchor.BN(1))
+    .accounts({
+      note: noteAccount,
+      payer: user.publicKey
+    })
+    .signers([user])
+    .rpc();
+
+    try {
+      await program.account.note.fetch(noteAccount);
+    } catch (error) {
+      expect(error.message).to.include("Account does not exist");
+    }
   });
 
   // create a function that will create a new user and give it lamports

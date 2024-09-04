@@ -55,6 +55,25 @@ pub mod note_app {
         note.note = data;
         Ok(())
     }
+
+    pub fn delete(ctx: Context<Delete>, count: u64) -> Result<()> {
+        // Validate that the passed `note` account matches the expected PDA
+        let (note, _bump) = Pubkey::find_program_address(
+            &[
+                b"note".as_ref(),
+                ctx.accounts.payer.key().as_ref(),
+                &count.to_le_bytes(),
+            ],
+            ctx.program_id,
+        );
+
+        if note != *ctx.accounts.note.to_account_info().key {
+            return Err(ErrorCode::InvalidNoteAccount.into());
+        }
+        
+        msg!("Deleting Note: {}", ctx.accounts.note.note);
+        Ok(())
+    }
 }
 
 #[derive(Accounts)]
@@ -83,6 +102,16 @@ pub struct Update<'info> {
     pub payer: Signer<'info>,
     // The system program account.
     pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+pub struct Delete<'info> {
+    // The note (data) account to initialize.
+    #[account(mut, close = payer)]
+    pub note: Account<'info, Note>,
+    // The user account to initialize the note account.
+    #[account(mut)]
+    pub payer: Signer<'info>,
 }
 
 #[account]
