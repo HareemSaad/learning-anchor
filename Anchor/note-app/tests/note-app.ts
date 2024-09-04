@@ -73,4 +73,24 @@ describe("note-app", () => {
 
     assert.ok(account.note === "Hello World!");
   });
+
+  it("Updates a note", async () => {
+
+    const [noteAccount] = PublicKey.findProgramAddressSync(
+      [Buffer.from("note"), provider.wallet.publicKey.toBuffer(), new anchor.BN(1).toArrayLike(Buffer, "le", 8)],
+      program.programId
+    );
+
+    await program.methods
+    .update("Hello World! Updated")
+    .accounts({
+      note: noteAccount,
+      payer: wallet.publicKey
+    })
+    .rpc();
+
+    const account = await program.account.note.fetch(noteAccount);
+
+    assert.ok(account.note === "Hello World! Updated");
+  });
 });

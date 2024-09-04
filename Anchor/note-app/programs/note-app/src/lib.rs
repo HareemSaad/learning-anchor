@@ -28,6 +28,17 @@ pub mod note_app {
         counter.count += 1;
         Ok(())
     }
+
+    pub fn update(ctx: Context<Update>, data: String) -> Result<()> {
+        //  check if data is less than 100 bytes
+        if data.len() > 100 {
+            return Err(ErrorCode::DataTooLong.into());
+        }
+        msg!("Updating Note App program");
+        let note = &mut ctx.accounts.note;
+        note.note = data;
+        Ok(())
+    }
 }
 
 #[derive(Accounts)]
@@ -38,6 +49,18 @@ pub struct Create<'info> {
     // the counter account
     #[account(mut)]
     pub counter: Account<'info, Count>,
+    // The user account to initialize the note account.
+    #[account(mut)]
+    pub payer: Signer<'info>,
+    // The system program account.
+    pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+pub struct Update<'info> {
+    // The note (data) account to initialize.
+    #[account(mut)]
+    pub note: Account<'info, Note>,
     // The user account to initialize the note account.
     #[account(mut)]
     pub payer: Signer<'info>,
