@@ -21,7 +21,7 @@ pub mod note_app {
 #[derive(Accounts)]
 pub struct Initialize<'info> {
     // The note (data) account to initialize.
-    #[account(init, payer = payer, space = 8 + Note::INIT_SPACE)]
+    #[account(init, payer = payer, space = 8 + Note::INIT_SPACE, seeds = [b"note".as_ref()], bump)]
     pub note: Account<'info, Note>,
     // The user account to initialize the note account.
     #[account(mut)]
