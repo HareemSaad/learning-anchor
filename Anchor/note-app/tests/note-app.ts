@@ -32,7 +32,6 @@ describe("note-app", () => {
     assert.ok(account.count.toNumber() == 1);
   });
 
-  // since seed is constant, we have to order the failing test first so as to avoid reinitialize error
   it("Does not initialize if note exceeds 100 bytes", async () => {
     try {
       const [counterAccount] = PublicKey.findProgramAddressSync(
