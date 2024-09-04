@@ -47,7 +47,8 @@ pub struct Create<'info> {
     #[account(init, payer = payer, space = 8 + Note::INIT_SPACE, seeds = [b"note".as_ref(), payer.key().as_ref(), &counter.count.to_le_bytes()], bump)]
     pub note: Account<'info, Note>,
     // the counter account
-    #[account(mut)]
+    // send seeds to auto calculate the PDA
+    #[account(mut, seeds = [payer.key().as_ref()], bump)]
     pub counter: Account<'info, Count>,
     // The user account to initialize the note account.
     #[account(mut)]

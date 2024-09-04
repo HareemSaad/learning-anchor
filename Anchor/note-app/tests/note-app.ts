@@ -42,9 +42,7 @@ describe("note-app", () => {
 
       await program.methods
         .create("lorem ipsum dolor sit amet, consectetur adipiscing elit. sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.")
-        .accounts({
-          counter: counterAccount,
-        })
+        .accounts({})
         .rpc();
     } catch (error) {
       expect(error.message).to.include("Data too long");
@@ -66,9 +64,7 @@ describe("note-app", () => {
     // create a new note, send the counter account
     await program.methods
     .create("Hello World!")
-    .accounts({
-      counter: counterAccount
-    })
+    .accounts({})
     .rpc();
 
     // find the note account
@@ -126,7 +122,6 @@ describe("note-app", () => {
     await program.methods
     .create("Hello World!")
     .accounts({
-      counter: counterAccount,
       payer: user1.publicKey
     })
     .signers([user1])
@@ -161,7 +156,6 @@ describe("note-app", () => {
     await program.methods
     .create("Hello World2!")
     .accounts({
-      counter: counterAccount2,
       payer: user2.publicKey
     })
     .signers([user2])
@@ -200,7 +194,6 @@ describe("note-app", () => {
     await program.methods
     .create("Hello World!")
     .accounts({
-      counter: counterAccount,
       payer: user.publicKey
     })
     .signers([user])
@@ -220,7 +213,6 @@ describe("note-app", () => {
     await program.methods
     .create("Hello World2!")
     .accounts({
-      counter: counterAccount,
       payer: user.publicKey
     })
     .signers([user])
@@ -237,6 +229,52 @@ describe("note-app", () => {
     assert.ok(account2.note === "Hello World2!");
     assert.ok(account.note === "Hello World!");
     assert.ok(counter.count.toNumber() === 3);
+  });
+
+  it("Cannot Use somebody else's counter storage", async () => {
+
+    const user = await createUser();
+
+    await program.methods
+    .initialize()
+    .accounts({
+      payer: user.publicKey
+    })
+    .signers([user])
+    .rpc();
+
+    // find the user's counter account
+    const [counterAccount] = PublicKey.findProgramAddressSync(
+      [user.publicKey.toBuffer()],
+      program.programId
+    );
+
+    // fetch the counter account - it gets the storage struct at the pda
+    let counter = await program.account.count.fetch(counterAccount);
+
+    assert.ok(counter.count.toNumber() === 1);
+
+    // create a new note, send the counter account
+    await program.methods
+    .create("Hello World!")
+    .accounts({
+      payer: user.publicKey
+    })
+    .signers([user])
+    .rpc();
+
+    // find the note account
+    const [noteAccount] = PublicKey.findProgramAddressSync(
+      [Buffer.from("note"), user.publicKey.toBuffer(), new anchor.BN(counter.count).toArrayLike(Buffer, "le", 8)],
+      program.programId
+    );
+
+    // need to refetch the counter account since it has been updated
+    const account = await program.account.note.fetch(noteAccount);
+    counter = await program.account.count.fetch(counterAccount);
+
+    assert.ok(account.note === "Hello World!");
+    assert.ok(counter.count.toNumber() === 2);
   });
 
   // create a function that will create a new user and give it lamports
