@@ -1,12 +1,21 @@
 use anchor_lang::prelude::*;
+mod counter;
 
+use counter::*;
 declare_id!("HMopToKhdRbGy81PFuxynZisN3YEV3Eq7jx6ftJyMcCk");
 
 #[program]
 pub mod note_app {
     use super::*;
 
-    pub fn initialize(ctx: Context<Initialize>, data: String) -> Result<()> {
+    pub fn initialize(ctx: Context<CounterInitialize>) -> Result<()> {
+        msg!("Initializing Counter App");
+        let counter = &mut ctx.accounts.counter;
+        counter.count = 1;
+        Ok(())
+    }
+
+    pub fn create(ctx: Context<Create>, data: String) -> Result<()> {
         //  check if data is less than 100 bytes
         if data.len() > 100 {
             return Err(ErrorCode::DataTooLong.into());
@@ -14,15 +23,21 @@ pub mod note_app {
         msg!("Initializing Note App program");
         let note = &mut ctx.accounts.note;
         note.note = data;
+
+        let counter = &mut ctx.accounts.counter;
+        counter.count += 1;
         Ok(())
     }
 }
 
 #[derive(Accounts)]
-pub struct Initialize<'info> {
+pub struct Create<'info> {
     // The note (data) account to initialize.
-    #[account(init, payer = payer, space = 8 + Note::INIT_SPACE, seeds = [b"note".as_ref()], bump)]
+    #[account(init, payer = payer, space = 8 + Note::INIT_SPACE, seeds = [b"note".as_ref(), payer.key().as_ref(), &counter.count.to_le_bytes()], bump)]
     pub note: Account<'info, Note>,
+    // the counter account
+    #[account(mut)]
+    pub counter: Account<'info, Count>,
     // The user account to initialize the note account.
     #[account(mut)]
     pub payer: Signer<'info>,
