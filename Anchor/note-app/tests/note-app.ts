@@ -15,16 +15,19 @@ describe("note-app", () => {
   const wallet = anchor.workspace.NoteApp.provider.wallet;
 
   it("Initializes the program", async () => {
+    // initialize the user's counter account
     await program.methods
     .initialize()
     .accounts({})
     .rpc();
 
+    // find the counter account
     const [counterAccount] = PublicKey.findProgramAddressSync(
       [provider.wallet.publicKey.toBuffer()],
       program.programId
     );
 
+    // fetch the counter account
     const account = await program.account.count.fetch(counterAccount);
     assert.ok(account.count.toNumber() == 1);
   });
@@ -49,28 +52,32 @@ describe("note-app", () => {
   });
 
   it("Creates a new note", async () => {
+    // find the user's counter account
     const [counterAccount] = PublicKey.findProgramAddressSync(
       [provider.wallet.publicKey.toBuffer()],
       program.programId
     );
 
+    // fetch the counter account - it gets the storage struct at the pda
     let counter = await program.account.count.fetch(counterAccount);
 
     assert.ok(counter.count.toNumber() === 1);
     
+    // create a new note, send the counter account
     await program.methods
     .create("Hello World!")
     .accounts({
-      counter: counterAccount,
-      payer: wallet.publicKey
+      counter: counterAccount
     })
     .rpc();
 
+    // find the note account
     const [noteAccount] = PublicKey.findProgramAddressSync(
       [Buffer.from("note"), provider.wallet.publicKey.toBuffer(), new anchor.BN(counter.count).toArrayLike(Buffer, "le", 8)],
       program.programId
     );
 
+    // need to refetch the counter account since it has been updated
     const account = await program.account.note.fetch(noteAccount);
     counter = await program.account.count.fetch(counterAccount);
 
